@@ -1,5 +1,8 @@
 import { initializeApp } from
   "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { update } from
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
 
 import { getDatabase, ref, push, onValue, remove } from
   "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
@@ -29,6 +32,7 @@ const contentInput = document.getElementById("contentInput");
 const reminderInput = document.getElementById("reminderInput");
 const addBtn = document.getElementById("addBtn");
 const notesList = document.getElementById("notesList");
+const priorityInput = document.getElementById("priorityInput");
 
 // ===============================
 // Add Note
@@ -37,6 +41,7 @@ addBtn.addEventListener("click", () => {
   const title = titleInput.value.trim();
   const content = contentInput.value.trim();
   const reminder = reminderInput.value;
+  const priority = priorityInput.value;
 
   if (!title && !content) {
     alert("Please write something");
@@ -47,12 +52,15 @@ addBtn.addEventListener("click", () => {
     title,
     content,
     reminder,
+    priority,
+    completed: false,
     createdAt: Date.now()
   });
 
   titleInput.value = "";
   contentInput.value = "";
   reminderInput.value = "";
+  priorityInput.value = "normal";
 });
 
 // ===============================
@@ -60,6 +68,7 @@ addBtn.addEventListener("click", () => {
 // ===============================
 onValue(notesRef, (snapshot) => {
   notesList.innerHTML = "";
+  let count = 1;
 
   snapshot.forEach((child) => {
     const data = child.val();
@@ -68,9 +77,24 @@ onValue(notesRef, (snapshot) => {
     const li = document.createElement("li");
     li.className = "note-item";
 
+    if (data.completed) li.classList.add("note-completed");
+    if (data.priority === "urgent") li.classList.add("note-urgent");
+
+    const number = document.createElement("div");
+    number.textContent = `#${count++}`;
+    number.style.fontWeight = "bold";
+    number.style.marginBottom = "4px";
+
     const title = document.createElement("div");
     title.className = "note-title";
     title.textContent = data.title || "Untitled";
+
+    if (data.priority === "urgent") {
+      const badge = document.createElement("span");
+      badge.className = "urgent-badge";
+      badge.textContent = " ⚠️";
+      title.appendChild(badge);
+    }
 
     const content = document.createElement("div");
     content.className = "note-content";
@@ -82,20 +106,19 @@ onValue(notesRef, (snapshot) => {
       ? "Reminder: " + new Date(data.reminder).toLocaleString()
       : "No reminder";
 
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "Delete";
-    delBtn.style.marginTop = "8px";
-    delBtn.style.background = "#dc2626";
+    const completeBtn = document.createElement("button");
+    completeBtn.textContent = data.completed ? "Undo" : "Complete";
+    completeBtn.style.marginTop = "8px";
+    completeBtn.style.background = "#16a34a";
 
-    delBtn.onclick = () => {
-      remove(ref(db, `DNotes/${key}`));
+    completeBtn.onclick = () => {
+      const noteRef = ref(db, `DNotes/${key}`);
+      update(noteRef, {
+        completed: !data.completed
+      });
     };
 
-    li.appendChild(title);
-    li.appendChild(content);
-    li.appendChild(time);
-    li.appendChild(delBtn);
-
+    li.append(number, title, content, time, completeBtn);
     notesList.prepend(li);
   });
 });
