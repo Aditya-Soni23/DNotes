@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DNotes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+          <img src="Diamond_Comapny_Logo.png" alt="DNotes Logo" class="logo" />
+          <div>
+            <h1>DNotes</h1>
+            <p class="subtitle">Simple notes & reminders</p>
+          </div>
+        </div>
+      </header>
+      
+
+  <main class="container">
+    <!-- Add Note -->
+    <section class="card">
+      <h2>Add Note / Reminder</h2>
+      <input type="text" id="titleInput" placeholder="Title" />
+      <textarea id="contentInput" placeholder="Write your note here..."></textarea>
+      <input type="datetime-local" id="reminderInput" />
+      <select style="background-color: yellow; border-radius: 20px;" id="priorityInput">
+        <option style="background-color: yellowgreen;" value="normal">Normal</option>
+        <option style="background-color: rgba(219, 13, 13, 0.772);" value="urgent">Urgent</option>
+      </select><br><br>
+      
+      <button id="addBtn">Add</button>
+    </section>
+
+    <!-- Notes List -->
+    <section class="card">
+      <h2>Your Notes</h2>
+      <ul id="notesList"></ul>
+    </section>
+  </main>
+
+  <script type="module" src="main.js"></script>
+
+</body>
+</html>

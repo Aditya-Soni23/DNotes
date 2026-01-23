@@ -3,44 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DNotes</title>
+  <title>DNotes | Minimalist Notes</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-    <header class="topbar">
-        <div class="brand">
-          <img src="Diamond_Comapny_Logo.png" alt="DNotes Logo" class="logo" />
-          <div>
-            <h1>DNotes</h1>
-            <p class="subtitle">Simple notes & reminders</p>
-          </div>
-        </div>
-      </header>
-      
+  <header style="background-color: rgb(11, 16, 72);" class="topbar">
+    <div class="brand">
+      <img src="Diamond_Comapny_Logo.png" alt="D" class="logo" />
+      <h1 style="color: white;">DNotes</h1>
+    </div>
+  </header>
 
   <main class="container">
-    <!-- Add Note -->
-    <section class="card">
-      <h2>Add Note / Reminder</h2>
-      <input type="text" id="titleInput" placeholder="Title" />
-      <textarea id="contentInput" placeholder="Write your note here..."></textarea>
-      <input type="datetime-local" id="reminderInput" />
-      <select style="background-color: yellow; border-radius: 20px;" id="priorityInput">
-        <option style="background-color: yellowgreen;" value="normal">Normal</option>
-        <option style="background-color: rgba(219, 13, 13, 0.772);" value="urgent">Urgent</option>
-      </select><br><br>
-      
-      <button id="addBtn">Add</button>
-    </section>
+    <div class="action-bar">
+      <button id="openModalBtn" class="btn btn-primary">+ New Note</button>
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="personal">Personal</button>
+        <button class="filter-btn" data-filter="professional">Professional</button>
+      </div>
+      <button id="downloadPdfBtn" class="btn btn-secondary">PDF Export</button>
+    </div>
 
-    <!-- Notes List -->
-    <section class="card">
-      <h2>Your Notes</h2>
+    <section class="notes-section">
+      <h2 id="listTitle">Personal Notes</h2>
       <ul id="notesList"></ul>
     </section>
   </main>
 
-  <script type="module" src="main.js"></script>
+  <div id="taskModal" class="modal">
+    <div class="modal-content">
+      <h3>New Note</h3>
+      <input type="text" id="titleInput" placeholder="Title" />
+      <textarea id="contentInput" placeholder="Note details..."></textarea>
+      <div class="grid-inputs">
+        <input type="datetime-local" id="reminderInput" />
+        <select id="priorityInput">
+          <option value="normal">Normal Priority</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <select id="categoryInput">
+          <option value="personal">Personal</option>
+          <option value="professional">Professional</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button id="addBtn" class="btn btn-primary">Save</button>
+        <button id="closeModalBtn" class="btn btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
 
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Note</h3>
+      <input type="hidden" id="editKey" />
+      <input type="text" id="editTitleInput" />
+      <textarea id="editContentInput"></textarea>
+      <div class="grid-inputs">
+        <input type="datetime-local" id="editReminderInput" />
+        <select id="editPriorityInput">
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <select id="editCategoryInput">
+          <option value="personal">Personal</option>
+          <option value="professional">Professional</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button id="updateBtn" class="btn btn-primary">Update</button>
+        <button id="closeEditModalBtn" class="btn btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
 </body>
 </html>

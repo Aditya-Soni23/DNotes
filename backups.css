@@ -1,0 +1,191 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  
+  body {
+    background: #f4f6f8;
+    color: #222;
+    min-height: 100vh;
+  }
+  
+  .topbar {
+    background: #1f2937;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .topbar h1 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+  }
+  
+  .subtitle {
+    font-size: 0.95rem;
+    color: #d1d5db;
+  }
+  
+  .container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  
+  .card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+  
+  .card h2 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #111827;
+  }
+  
+  input[type="text"],
+  input[type="datetime-local"],
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+  }
+  
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+  
+  button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #1d4ed8;
+  }
+  
+  #notesList {
+    list-style: none;
+  }
+  
+  .note-item {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .note-item:last-child {
+    border-bottom: none;
+  }
+  
+  .note-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .note-content {
+    font-size: 0.9rem;
+    color: #374151;
+  }
+  
+  .note-time {
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      grid-template-columns: 1fr;
+    }
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+  }
+  .note-completed .note-title,
+.note-completed .note-content {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+.note-urgent {
+  border-left: 4px solid #dc2626;
+}
+
+.urgent-badge {
+  color: #dc2626;
+  font-weight: bold;
+  margin-left: 6px;
+}
+.note-item {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+.action-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  width: 300px;
+  border-radius: 10px;
+}
+
+.category-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.category-buttons button {
+  flex: 1;
+}
