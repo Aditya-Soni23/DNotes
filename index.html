@@ -2,22 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DNotes | Minimalist Notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DNotes | Smart Organizer</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <header style="background-color: rgb(11, 16, 72);" class="topbar">
+  <header class="topbar">
     <div class="brand">
       <img src="Diamond_Comapny_Logo.png" alt="D" class="logo" />
-      <h1 style="color: white;">DNotes</h1>
+      <h1>DNotes</h1>
     </div>
   </header>
 
   <main class="container">
     <div class="action-bar">
-      <button id="openModalBtn" class="btn btn-primary">+ New Note</button>
       <div class="filter-tabs">
         <button class="filter-btn active" data-filter="personal">Personal</button>
         <button class="filter-btn" data-filter="professional">Professional</button>
@@ -31,6 +30,8 @@
     </section>
   </main>
 
+  <button id="openModalBtn" class="fab-btn">+</button>
+
   <div id="taskModal" class="modal">
     <div class="modal-content">
       <h3>New Note</h3>
@@ -39,7 +40,7 @@
       <div class="grid-inputs">
         <input type="datetime-local" id="reminderInput" />
         <select id="priorityInput">
-          <option value="normal">Normal Priority</option>
+          <option value="normal">Normal</option>
           <option value="urgent">Urgent</option>
         </select>
         <select id="categoryInput">
@@ -48,7 +49,7 @@
         </select>
       </div>
       <div class="modal-btns">
-        <button id="addBtn" class="btn btn-primary">Save</button>
+        <button id="addBtn" class="btn btn-primary">Save Note</button>
         <button id="closeModalBtn" class="btn btn-cancel">Cancel</button>
       </div>
     </div>
