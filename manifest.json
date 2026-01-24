@@ -1,0 +1,21 @@
+{
+    "name": "DNotes Cloud",
+    "short_name": "DNotes",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#764ba2",
+    "theme_color": "#667eea",
+    "orientation": "portrait",
+    "icons": [
+      {
+        "src": "unnamed.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "unnamed.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
