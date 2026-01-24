@@ -21,7 +21,7 @@ const editModal = document.getElementById("editModal");
 let currentFilter = "personal";
 
 // --- 1. IPHONE STYLE WELCOME SEQUENCER ---
-const greetings = ["Hello", "Namaste"];
+const greetings = ["Hello", "नमस्ते"];
 let greetIdx = 0;
 const welcomeTxt = document.getElementById("welcome-text");
 
