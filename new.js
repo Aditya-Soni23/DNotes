@@ -13,7 +13,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const notesRef = ref(db, "DNotes");
+
+// --- 0. AUTH CHECK & DYNAMIC PATH ---
+const userKey = localStorage.getItem("dnotes_user");
+if (!userKey) {
+    window.location.href = "index.html"; // Boot them out if not logged in
+}
+
+// All data now lives under users/sanitized_email/notes
+const notesRef = ref(db, `users/${userKey}/notes`);
 
 const notesList = document.getElementById("notesList");
 const taskModal = document.getElementById("taskModal");
@@ -36,8 +44,10 @@ function cycleGreetings() {
         }, 300);
     } else {
         const screen = document.getElementById("welcome-screen");
-        screen.style.opacity = "0";
-        setTimeout(() => screen.style.display = "none", 800);
+        if(screen) {
+            screen.style.opacity = "0";
+            setTimeout(() => screen.style.display = "none", 800);
+        }
     }
 }
 window.addEventListener("DOMContentLoaded", cycleGreetings);
@@ -45,6 +55,7 @@ window.addEventListener("DOMContentLoaded", cycleGreetings);
 // --- 2. AUTO-NUMBERING SYSTEM ---
 const setupAutoNumbering = (elId) => {
     const el = document.getElementById(elId);
+    if(!el) return;
     el.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             const start = el.selectionStart;
@@ -52,8 +63,6 @@ const setupAutoNumbering = (elId) => {
             const textBefore = el.value.substring(0, start);
             const lines = textBefore.split("\n");
             const lastLine = lines[lines.length - 1];
-            
-            // Matches numbers like "1. ", "2. ", etc.
             const match = lastLine.match(/^(\d+)\.\s/);
             if (match) {
                 e.preventDefault();
@@ -69,7 +78,7 @@ setupAutoNumbering("contentInput");
 setupAutoNumbering("editContentInput");
 
 // --- MODALS & FILTERS ---
-const toggleModal = (modal, state) => modal.style.display = state ? "flex" : "none";
+const toggleModal = (modal, state) => { if(modal) modal.style.display = state ? "flex" : "none"; };
 document.getElementById("openModalBtn").onclick = () => toggleModal(taskModal, true);
 document.getElementById("closeModalBtn").onclick = () => toggleModal(taskModal, false);
 document.getElementById("closeEditModalBtn").onclick = () => toggleModal(editModal, false);
@@ -105,7 +114,8 @@ document.getElementById("addBtn").onclick = () => {
 
 document.getElementById("updateBtn").onclick = () => {
     const key = document.getElementById("editKey").value;
-    update(ref(db, `DNotes/${key}`), {
+    // Updated path to include userKey
+    update(ref(db, `users/${userKey}/notes/${key}`), {
         title: document.getElementById("editTitleInput").value,
         content: document.getElementById("editContentInput").value,
         reminder: document.getElementById("editReminderInput").value,
@@ -124,7 +134,6 @@ function renderNotes() {
 
         tasks = tasks.filter(t => t.category === currentFilter);
         
-        // SORTING: Completed status -> Urgent vs Normal -> Numerical Order
         tasks.sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
@@ -132,24 +141,31 @@ function renderNotes() {
             return b.createdAt - a.createdAt;
         });
 
-        tasks.forEach(data => {
+        tasks.forEach((data, index) => { // Added index here
             const li = document.createElement("li");
             const isUrgent = data.priority === 'urgent';
             li.className = `note-item ${data.completed ? 'note-completed' : ''} ${isUrgent ? 'note-urgent' : ''}`;
             
-            li.innerHTML = `
-                <div class="note-title">${data.title} ${isUrgent ? '⚠️' : ''}</div>
-                <div class="note-content">${data.content}</div>
-                <span class="note-time">${data.reminder ? '🔔 ' + new Date(data.reminder).toLocaleString() : 'No reminder'}</span>
-                <div class="note-actions">
-                    <button style="background:#16a34a;" class="done-btn">${data.completed ? 'Undo' : 'Done'}</button>
-                    <button style="background:#f59e0b;" class="edit-btn">Edit</button>
-                    <button style="background:#ef4444;" class="del-btn">Delete</button>
-                </div>
-            `;
+            // Inside tasks.forEach in renderNotes
+li.innerHTML = `
+<div class="note-title">
+    <span class="note-number">${index + 1}.</span> ${data.title} ${isUrgent ? '⚠️' : ''}
+</div>
+<div class="note-content">${data.content}</div>
+<div class="note-status-print" style="display:none; font-size: 0.8rem; font-weight: bold; color: #16a34a;">
+    Status: ${data.completed ? 'Completed' : 'Pending'}
+</div>
+<span class="note-time">${data.reminder ? '🔔 ' + new Date(data.reminder).toLocaleString() : 'No reminder'}</span>
+<div class="note-actions">
+    <button style="background:#16a34a;" class="done-btn">${data.completed ? 'Undo' : 'Done'}</button>
+    <button style="background:#f59e0b;" class="edit-btn">Edit</button>
+    <button style="background:#ef4444;" class="del-btn">Delete</button>
+</div>
+`;
 
-            li.querySelector(".done-btn").onclick = () => update(ref(db, `DNotes/${data.key}`), { completed: !data.completed });
-            li.querySelector(".del-btn").onclick = () => confirm("Delete?") && remove(ref(db, `DNotes/${data.key}`));
+            // Updated all child paths to include userKey
+            li.querySelector(".done-btn").onclick = () => update(ref(db, `users/${userKey}/notes/${data.key}`), { completed: !data.completed });
+            li.querySelector(".del-btn").onclick = () => confirm("Delete?") && remove(ref(db, `users/${userKey}/notes/${data.key}`));
             li.querySelector(".edit-btn").onclick = () => {
                 document.getElementById("editKey").value = data.key;
                 document.getElementById("editTitleInput").value = data.title;
@@ -165,3 +181,67 @@ function renderNotes() {
 }
 
 renderNotes();
+
+document.getElementById("downloadPdfBtn").onclick = () => {
+    const element = document.getElementById("notesList");
+    
+    // 1. Create a container to hold our Heading + the Notes
+    const pdfContainer = document.createElement("div");
+    pdfContainer.style.padding = "20px";
+    pdfContainer.style.fontFamily = "'Segoe UI', sans-serif";
+
+    // 2. Add the dynamic Heading
+    const categoryName = currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
+    const heading = document.createElement("h1");
+    heading.innerText = `DNotes: ${categoryName} Notes Report`;
+    heading.style.color = "#1e293b";
+    heading.style.borderBottom = "2px solid #4f46e5";
+    heading.style.paddingBottom = "10px";
+    heading.style.marginBottom = "20px";
+    pdfContainer.appendChild(heading);
+
+    // 3. Clone and clean the notes
+    const clone = element.cloneNode(true);
+    clone.querySelectorAll('.note-item').forEach(note => {
+        // Remove strikethrough/fading for PDF
+        note.style.opacity = "1";
+        const title = note.querySelector('.note-title');
+        if (title) {
+            title.style.textDecoration = "none";
+            title.style.color = "#1e293b";
+        }
+
+        // Show "Status" text for PDF
+        const statusText = note.querySelector('.note-status-print');
+        if (statusText) {
+            statusText.style.display = "block";
+        }
+
+        // Remove UI buttons
+        const actions = note.querySelector('.note-actions');
+        if (actions) actions.remove();
+    });
+
+    pdfContainer.appendChild(clone);
+
+    // 4. PDF Configuration
+    const opt = {
+        margin:       10,
+        filename:     `DNotes_${categoryName}_Report.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(pdfContainer).save();
+};
+// --- LOGOUT LOGIC ---
+document.getElementById("logoutBtn").onclick = () => {
+    if (confirm("Are you sure you want to log out?")) {
+        // 1. Clear the user key so the app "forgets" them
+        localStorage.removeItem("dnotes_user");
+        
+        // 2. Redirect to the login page (index.html)
+        window.location.href = "index.html";
+    }
+};

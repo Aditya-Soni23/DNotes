@@ -53,7 +53,7 @@ body { background: var(--bg); color: var(--text-main); padding-bottom: 100px; }
 .note-urgent { border-left-color: var(--urgent); }
 .note-urgent .note-title { color: var(--urgent); }
 
-.note-completed { opacity: 1; background: #3cff0031; }
+.note-completed { opacity: 0.6; background: #f1f5f9; }
 .note-completed .note-title { text-decoration: line-through; color: #94a3b8 !important; }
 
 .note-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
@@ -71,32 +71,4 @@ input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; bo
 @media (min-width: 600px) {
     .action-bar { flex-direction: row; justify-content: space-between; }
     .btn-secondary { width: auto; }
-}
-/* Style for the Logout FAB */
-.logout-fab {
-  bottom: 105px; /* Positioned above the + button */
-  background: #64748b; /* Sleek slate color */
-  width: 50px;
-  height: 50px;
-  font-size: 20px;
-}
-
-.logout-fab:hover {
-  background: var(--urgent); /* Turns red on hover for a warning feel */
-}
-.note-number {
-  color: var(--text-main);
-  font-weight: 800;
-  margin-right: 5px;
-  font-size: 0.9rem;
-}
-
-/* Ensure the PDF button looks like the other secondary buttons */
-#downloadPdfBtn {
-  margin-top: 10px;
-  transition: all 0.3s ease;
-}
-
-#downloadPdfBtn:hover {
-  background: #e2e8f0;
 }
