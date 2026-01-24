@@ -1,0 +1,61 @@
+:root {
+    --primary: #4f46e5;
+    --bg: #f8fafc;
+    --text-main: #1e293b;
+    --text-sub: #64748b;
+    --urgent: #ef4444;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+  
+  body { background: var(--bg); color: var(--text-main); padding-bottom: 100px; }
+  
+  .topbar { background: #fff; padding: 1rem; border-bottom: 1px solid #e2e8f0; text-align: center; }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .logo { width: 30px; height: 30px; }
+  
+  .container { max-width: 600px; margin: 1rem auto; padding: 0 15px; }
+  
+  .fab-btn {
+    position: fixed; bottom: 30px; right: 25px; width: 60px; height: 60px;
+    background: var(--primary); color: white; border: none; border-radius: 50%;
+    font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 999;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  
+  .action-bar { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .filter-tabs { display: flex; background: #e2e8f0; border-radius: 10px; padding: 4px; }
+  .filter-btn { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; background: transparent; font-weight: bold; color: var(--text-sub); }
+  .filter-btn.active { background: white; color: var(--primary); }
+  
+  .btn { padding: 12px; border-radius: 8px; border: none; font-weight: bold; width: 100%; cursor: pointer; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-secondary { background: white; border: 1px solid #cbd5e1; }
+  .btn-cancel { background: #f1f5f9; }
+  
+  .note-item { 
+    background: white; padding: 15px; margin-bottom: 15px; border-radius: 12px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #e2e8f0;
+    word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;
+  }
+  
+  .note-urgent { border-left-color: var(--urgent); color: var(--urgent); }
+  .note-completed { opacity: 0.6; background: #f1f5f9; }
+  .note-completed .note-title { text-decoration: line-through; color: #94a3b8; }
+  
+  .note-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+  .note-content { font-size: 0.95rem; color: var(--text-sub); margin-bottom: 12px; white-space: pre-wrap; }
+  .note-time { font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 10px; }
+  
+  .note-actions { display: flex; gap: 5px; }
+  .note-actions button { flex: 1; height: 20px; font-size: 0.75rem; border-radius: 6px; border: none; color: white; cursor: pointer; }
+  
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 15px; }
+  .modal-content { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; }
+  .grid-inputs { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  input, textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-top: 5px; }
+  
+  @media (min-width: 600px) {
+      .action-bar { flex-direction: row; justify-content: space-between; }
+      .btn-secondary { width: auto; }
+  }

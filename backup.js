@@ -20,56 +20,8 @@ const taskModal = document.getElementById("taskModal");
 const editModal = document.getElementById("editModal");
 let currentFilter = "personal";
 
-// --- 1. IPHONE STYLE WELCOME SEQUENCER ---
-const greetings = ["Hello", "Namaste"];
-let greetIdx = 0;
-const welcomeTxt = document.getElementById("welcome-text");
-
-function cycleGreetings() {
-    if (greetIdx < greetings.length) {
-        welcomeTxt.style.opacity = 0;
-        setTimeout(() => {
-            welcomeTxt.innerText = greetings[greetIdx];
-            welcomeTxt.style.opacity = 1;
-            greetIdx++;
-            setTimeout(cycleGreetings, 400); 
-        }, 300);
-    } else {
-        const screen = document.getElementById("welcome-screen");
-        screen.style.opacity = "0";
-        setTimeout(() => screen.style.display = "none", 800);
-    }
-}
-window.addEventListener("DOMContentLoaded", cycleGreetings);
-
-// --- 2. AUTO-NUMBERING SYSTEM ---
-const setupAutoNumbering = (elId) => {
-    const el = document.getElementById(elId);
-    el.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            const start = el.selectionStart;
-            const end = el.selectionEnd;
-            const textBefore = el.value.substring(0, start);
-            const lines = textBefore.split("\n");
-            const lastLine = lines[lines.length - 1];
-            
-            // Matches numbers like "1. ", "2. ", etc.
-            const match = lastLine.match(/^(\d+)\.\s/);
-            if (match) {
-                e.preventDefault();
-                const nextNum = parseInt(match[1]) + 1;
-                const insert = `\n${nextNum}. `;
-                el.value = el.value.substring(0, start) + insert + el.value.substring(end);
-                el.selectionStart = el.selectionEnd = start + insert.length;
-            }
-        }
-    });
-};
-setupAutoNumbering("contentInput");
-setupAutoNumbering("editContentInput");
-
-// --- MODALS & FILTERS ---
 const toggleModal = (modal, state) => modal.style.display = state ? "flex" : "none";
+
 document.getElementById("openModalBtn").onclick = () => toggleModal(taskModal, true);
 document.getElementById("closeModalBtn").onclick = () => toggleModal(taskModal, false);
 document.getElementById("closeEditModalBtn").onclick = () => toggleModal(editModal, false);
@@ -84,7 +36,6 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
     };
 });
 
-// --- FIREBASE DATA ---
 document.getElementById("addBtn").onclick = () => {
     const title = document.getElementById("titleInput").value.trim();
     if (!title) return alert("Title required");
@@ -92,7 +43,6 @@ document.getElementById("addBtn").onclick = () => {
         title, 
         content: document.getElementById("contentInput").value.trim(),
         reminder: document.getElementById("reminderInput").value,
-        order: parseInt(document.getElementById("orderInput").value) || 1,
         priority: document.getElementById("priorityInput").value,
         category: document.getElementById("categoryInput").value,
         completed: false,
@@ -109,7 +59,6 @@ document.getElementById("updateBtn").onclick = () => {
         title: document.getElementById("editTitleInput").value,
         content: document.getElementById("editContentInput").value,
         reminder: document.getElementById("editReminderInput").value,
-        order: parseInt(document.getElementById("editOrderInput").value) || 1,
         priority: document.getElementById("editPriorityInput").value,
         category: document.getElementById("editCategoryInput").value
     });
@@ -123,22 +72,13 @@ function renderNotes() {
         snapshot.forEach(child => { tasks.push({ key: child.key, ...child.val() }); });
 
         tasks = tasks.filter(t => t.category === currentFilter);
-        
-        // SORTING: Completed status -> Urgent vs Normal -> Numerical Order
-        tasks.sort((a, b) => {
-            if (a.completed !== b.completed) return a.completed ? 1 : -1;
-            if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
-            if (a.order !== b.order) return a.order - b.order;
-            return b.createdAt - a.createdAt;
-        });
+        tasks.sort((a, b) => (a.completed === b.completed) ? (b.createdAt - a.createdAt) : (a.completed ? 1 : -1));
 
         tasks.forEach(data => {
             const li = document.createElement("li");
-            const isUrgent = data.priority === 'urgent';
-            li.className = `note-item ${data.completed ? 'note-completed' : ''} ${isUrgent ? 'note-urgent' : ''}`;
-            
+            li.className = `note-item ${data.completed ? 'note-completed' : ''} ${data.priority === 'urgent' ? 'note-urgent' : ''}`;
             li.innerHTML = `
-                <div class="note-title">${data.title} ${isUrgent ? '⚠️' : ''}</div>
+                <div class="note-title">${data.title} ${data.priority === 'urgent' ? '⚠️' : ''}</div>
                 <div class="note-content">${data.content}</div>
                 <span class="note-time">${data.reminder ? '🔔 ' + new Date(data.reminder).toLocaleString() : 'No reminder'}</span>
                 <div class="note-actions">
@@ -149,19 +89,67 @@ function renderNotes() {
             `;
 
             li.querySelector(".done-btn").onclick = () => update(ref(db, `DNotes/${data.key}`), { completed: !data.completed });
-            li.querySelector(".del-btn").onclick = () => confirm("Delete?") && remove(ref(db, `DNotes/${data.key}`));
+            li.querySelector(".del-btn").onclick = () => confirm("Delete note?") && remove(ref(db, `DNotes/${data.key}`));
             li.querySelector(".edit-btn").onclick = () => {
                 document.getElementById("editKey").value = data.key;
                 document.getElementById("editTitleInput").value = data.title;
                 document.getElementById("editContentInput").value = data.content;
                 document.getElementById("editReminderInput").value = data.reminder;
-                document.getElementById("editOrderInput").value = data.order;
-                document.getElementById("editPriorityInput").value = data.priority;
                 toggleModal(editModal, true);
             };
             notesList.appendChild(li);
         });
     });
 }
+
+// --- CLEAN PDF EXPORT ---
+document.getElementById("downloadPdfBtn").onclick = () => {
+    const tempDiv = document.createElement("div");
+    tempDiv.style.padding = "20px";
+    tempDiv.innerHTML = `<h1 style="color:#4f46e5; margin-bottom:20px;">${currentFilter.toUpperCase()} NOTES</h1>`;
+    
+    // Select all rendered note items
+    const notes = document.querySelectorAll(".note-item");
+    
+    notes.forEach(note => {
+        const clone = note.cloneNode(true);
+        
+        // 1. Remove Action Buttons
+        const actions = clone.querySelector(".note-actions");
+        if(actions) actions.remove();
+
+        // 2. Clear Visual Strikethrough for PDF
+        const title = clone.querySelector(".note-title");
+        if(title) {
+            title.style.textDecoration = "none";
+            title.style.color = "#1e293b";
+        }
+        clone.style.opacity = "1";
+        clone.style.background = "#ffffff";
+        clone.style.border = "1px solid #e2e8f0";
+
+        // 3. Add Text Status Label
+        const isCompleted = note.classList.contains("note-completed");
+        const statusLabel = document.createElement("div");
+        statusLabel.style.marginTop = "10px";
+        statusLabel.style.fontSize = "0.8rem";
+        statusLabel.style.fontWeight = "bold";
+        statusLabel.style.color = isCompleted ? "#16a34a" : "#64748b";
+        statusLabel.innerText = "STATUS: " + (isCompleted ? "COMPLETED" : "PENDING");
+        
+        clone.appendChild(statusLabel);
+        tempDiv.appendChild(clone);
+    });
+
+    const opt = {
+        margin: 0.5,
+        filename: `DNotes_${currentFilter}_List.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(tempDiv).save();
+};
 
 renderNotes();
