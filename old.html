@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DNotes | Smart Organizer</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#667eea">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="Diamond_Comapny_Logo.png" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div id="welcome-screen">
+    <div class="welcome-content">
+      <h1 id="welcome-text">Hello</h1>
+    </div>
+  </div>
+
+  <header style="background-color: rgb(0, 0, 95);" class="topbar">
+    <div class="brand">
+      <img src="Diamond_Comapny_Logo.png" alt="D" class="logo" />
+      <h1 style="color: white;">DNotes</h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="action-bar">
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="personal">Personal</button>
+        <button class="filter-btn" data-filter="professional">Professional</button>
+      </div>
+      
+    </div>
+    <section class="notes-section">
+      <h2 id="listTitle">Personal Notes</h2>
+      <ul id="notesList"></ul>
+      <button id="downloadPdfBtn" class="btn btn-secondary">PDF Export</button>
+    </section>
+  </main>
+
+  <button id="openModalBtn" class="fab-btn">+</button>
+
+  <div id="taskModal" class="modal">
+    <div class="modal-content">
+      <h3>New Note</h3>
+      <input type="text" id="titleInput" placeholder="Title" />
+      <textarea id="contentInput" placeholder="Note details... (Type 1. to start a list)"></textarea>
+      <div class="grid-inputs">
+        <input type="datetime-local" id="reminderInput" />
+        <input type="number" id="orderInput" placeholder="Order (1, 2, 3...)" min="1" value="1" />
+        <select id="priorityInput">
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <select id="categoryInput">
+          <option value="personal">Personal</option>
+          <option value="professional">Professional</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button id="addBtn" class="btn btn-primary">Save Note</button>
+        <button id="closeModalBtn" class="btn btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Note</h3>
+      <input type="hidden" id="editKey" />
+      <input type="text" id="editTitleInput" />
+      <textarea id="editContentInput"></textarea>
+      <div class="grid-inputs">
+        <input type="datetime-local" id="editReminderInput" />
+        <input type="number" id="editOrderInput" min="1" />
+        <select id="editPriorityInput">
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <select id="editCategoryInput">
+          <option value="personal">Personal</option>
+          <option value="professional">Professional</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button id="updateBtn" class="btn btn-primary">Update</button>
+        <button id="closeEditModalBtn" class="btn btn-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
