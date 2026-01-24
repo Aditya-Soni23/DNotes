@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNotes | Upgrade</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f43f5e, #ec4899);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      padding: 2.5rem;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(18px);
+      border-radius: 26px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+      text-align: center;
+      color: #fff;
+    }
+
+    h1 {
+      margin-bottom: 0.6rem;
+      font-size: 1.9rem;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 1.6rem;
+    }
+
+    .qr-box {
+      background: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      display: inline-block;
+      margin-bottom: 1.4rem;
+    }
+
+    .qr-box img {
+      width: 180px;
+      height: auto;
+    }
+
+    .price {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1.4rem;
+    }
+
+    .price span {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .info {
+      font-size: 0.9rem;
+      margin-bottom: 1.2rem;
+      opacity: 0.9;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      background: #ffffff;
+      color: #ec4899;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      opacity: 0.95;
+    }
+
+    .back {
+      display: block;
+      margin-top: 1.4rem;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h1>Upgrade to DNotes Pro</h1>
+    <p class="subtitle">
+      Scan the QR code and complete your payment.
+    </p>
+
+    <!-- QR CODE -->
+    <div class="qr-box">
+      <!-- REPLACE src WITH YOUR REAL QR IMAGE -->
+      <img src="payment.jpeg" alt="Payment QR Code">
+    </div>
+
+    <div class="price">₹999 <span>/ month</span></div>
+
+    <p class="info">
+      Once you've paid, enter your <b>email</b> and <b>transaction ID</b> below.
+    </p>
+
+    <!-- PAYMENT FORM -->
+    <input type="email" id="email" placeholder="Your Email" required>
+    <input type="text" id="txnId" placeholder="Transaction ID (UTR / TXN ID)" required>
+
+    <button id="submitPayment">Submit Payment Details</button>
+
+    <a href="index.html" class="back">← Back to Login</a>
+  </div>
+
+  <!-- FIREBASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBZTkOnUFqFdNAoK63dI2iCzDoykAjSylI",
+      authDomain: "dnotes-cf9f2.firebaseapp.com",
+      databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com",
+      projectId: "dnotes-cf9f2",
+      storageBucket: "dnotes-cf9f2.firebasestorage.app",
+      messagingSenderId: "886010408120",
+      appId: "1:886010408120:web:e85c8681e72552c33f584d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    document.getElementById("submitPayment").onclick = () => {
+      const email = document.getElementById("email").value.trim();
+      const txnId = document.getElementById("txnId").value.trim();
+
+      if (!email || !txnId) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      push(ref(db, "payments"), {
+        email: email,
+        txnId: txnId,
+        time: new Date().toISOString()
+      });
+
+      alert("Payment details submitted! We’ll verify and activate your access soon.");
+      document.getElementById("email").value = "";
+      document.getElementById("txnId").value = "";
+    };
+  </script>
+
+</body>
+</html>

@@ -2,91 +2,196 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>DNotes | Smart Organizer</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DNotes | Login</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* soft animated blobs */
+    .blob {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.15);
+      filter: blur(120px);
+      border-radius: 50%;
+      animation: float 8s infinite alternate ease-in-out;
+    }
+
+    .blob.one { top: -100px; left: -100px; }
+    .blob.two { bottom: -120px; right: -120px; animation-delay: 2s; }
+
+    @keyframes float {
+      from { transform: translateY(0); }
+      to { transform: translateY(40px); }
+    }
+
+    .login-card {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 420px;
+      padding: 2.8rem 2.5rem;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      color: #fff;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      width: 70px;
+      height: 70px;
+      border-radius: 16px;
+      background: white;
+      padding: 10px;
+      margin: 0 auto 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo img {
+      width: 100%;
+      height: auto;
+    }
+
+    h2 {
+      margin: 0.5rem 0 0.4rem;
+      font-weight: 700;
+      font-size: 1.7rem;
+      letter-spacing: 0.4px;
+    }
+
+    p {
+      margin: 0 0 2.2rem;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.5;
+    }
+
+    .google-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #ffffff;
+      color: #1f2937;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .google-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .google-btn img {
+      width: 22px;
+    }
+
+    .footer-text {
+      margin-top: 1.8rem;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.65);
+    }
+  </style>
 </head>
+
 <body>
-  <div id="welcome-screen">
-    <div class="welcome-content">
-      <h1 id="welcome-text">Hello</h1>
+
+  <div class="blob one"></div>
+  <div class="blob two"></div>
+
+  <div class="login-card">
+    <div class="logo">
+      <img src="unnamed.png" alt="DNotes Logo">
+    </div>
+
+    <h2>Welcome to DNotes</h2>
+    <p>Your secure cloud notebook.<br>Sign in to continue.</p>
+
+    <button class="google-btn" id="loginBtn">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/250px-Google_%22G%22_logo.svg.png">
+      Sign in with Google
+    </button>
+
+    <div class="footer-text">
+      © 2026 DNotes · Built for focus
     </div>
   </div>
 
-  <header style="background-color: rgb(0, 0, 95);" class="topbar">
-    <div class="brand">
-      <img src="Diamond_Comapny_Logo.png" alt="D" class="logo" />
-      <h1 style="color: white;">DNotes</h1>
-    </div>
-  </header>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-  <main class="container">
-    <div class="action-bar">
-      <div class="filter-tabs">
-        <button class="filter-btn active" data-filter="personal">Personal</button>
-        <button class="filter-btn" data-filter="professional">Professional</button>
-      </div>
-      
-    </div>
-    <section class="notes-section">
-      <h2 id="listTitle">Personal Notes</h2>
-      <ul id="notesList"></ul>
-      <button id="downloadPdfBtn" class="btn btn-secondary">PDF Export</button>
-    </section>
-  </main>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBZTkOnUFqFdNAoK63dI2iCzDoykAjSylI",
+      authDomain: "dnotes-cf9f2.firebaseapp.com",
+      databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com",
+      projectId: "dnotes-cf9f2",
+      storageBucket: "dnotes-cf9f2.firebasestorage.app",
+      messagingSenderId: "886010408120",
+      appId: "1:886010408120:web:e85c8681e72552c33f584d"
+    };
 
-  <button id="openModalBtn" class="fab-btn">+</button>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-  <div id="taskModal" class="modal">
-    <div class="modal-content">
-      <h3>New Note</h3>
-      <input type="text" id="titleInput" placeholder="Title" />
-      <textarea id="contentInput" placeholder="Note details... (Type 1. to start a list)"></textarea>
-      <div class="grid-inputs">
-        <input type="datetime-local" id="reminderInput" />
-        <input type="number" id="orderInput" placeholder="Order (1, 2, 3...)" min="1" value="1" />
-        <select id="priorityInput">
-          <option value="normal">Normal</option>
-          <option value="urgent">Urgent</option>
-        </select>
-        <select id="categoryInput">
-          <option value="personal">Personal</option>
-          <option value="professional">Professional</option>
-        </select>
-      </div>
-      <div class="modal-btns">
-        <button id="addBtn" class="btn btn-primary">Save Note</button>
-        <button id="closeModalBtn" class="btn btn-cancel">Cancel</button>
-      </div>
-    </div>
-  </div>
+    const allowedEmails = [
+      "adityasonihyderabad@gmail.com",
+      "robuxgenerator999@gmail.com"
+    ];
 
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <h3>Edit Note</h3>
-      <input type="hidden" id="editKey" />
-      <input type="text" id="editTitleInput" />
-      <textarea id="editContentInput"></textarea>
-      <div class="grid-inputs">
-        <input type="datetime-local" id="editReminderInput" />
-        <input type="number" id="editOrderInput" min="1" />
-        <select id="editPriorityInput">
-          <option value="normal">Normal</option>
-          <option value="urgent">Urgent</option>
-        </select>
-        <select id="editCategoryInput">
-          <option value="personal">Personal</option>
-          <option value="professional">Professional</option>
-        </select>
-      </div>
-      <div class="modal-btns">
-        <button id="updateBtn" class="btn btn-primary">Update</button>
-        <button id="closeEditModalBtn" class="btn btn-cancel">Cancel</button>
-      </div>
-    </div>
-  </div>
+    document.getElementById("loginBtn").onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const email = result.user.email;
 
-  <script type="module" src="main.js"></script>
+        if (allowedEmails.includes(email)) {
+          localStorage.setItem("dnotes_user", email.replace(/\./g, "_"));
+          window.location.href = "notes.html";
+        } else {
+          window.location.href = "payment.html";
+        }
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    };
+  </script>
+
 </body>
 </html>
