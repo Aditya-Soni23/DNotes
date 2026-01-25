@@ -54,13 +54,6 @@
       <div id="allowed-list"></div>
     </div>
 
-
-    <div class="card">
-      <h2 style="color: #ef4444;">Blacklisted Users</h2>
-      <div id="blacklist-list">
-        <p style="opacity: 0.4; font-size: 0.9rem;">No blacklisted users.</p>
-      </div>
-    </div>
   </div>
 
   <script type="module">
@@ -124,43 +117,24 @@
     }
 
     function renderUser(container, email, mode, pushKey = null) {
-  const div = document.createElement("div");
-  div.className = "user-row";
-  const firebaseId = email.replace(/\./g, "_"); 
-  const safeId = email.replace(/[@.]/g, "_"); 
+      const div = document.createElement("div");
+      div.className = "user-row";
+      const firebaseId = email.replace(/\./g, "_"); 
+      const safeId = email.replace(/[@.]/g, "_"); 
 
-  div.innerHTML = `
-    <span class="email-info">${email} ${mode === 'blacklisted' ? '<b style="color:#ef4444;">(BLOCKED)</b>' : ''}</span>
-    <div class="actions" style="display: flex; align-items: center; gap: 8px;">
-      ${mode === 'active' ? `
-          <input type="text" id="note-${safeId}" placeholder="Send a note..." style="padding: 6px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 0.8rem; width: 140px;">
-          <button class="btn btn-primary" id="send-${safeId}" style="background: #6366f1; padding: 6px 12px;">Send</button>
-          <button class="btn btn-deny" id="revoke-${safeId}">Revoke</button>
-          <button class="btn" id="blacklist-${safeId}" style="background: #ef4444; color: white;">Blacklist</button>
-      ` : mode === 'blacklisted' ? `
-          <button class="btn btn-allow" id="unblock-${safeId}">Unblock</button>
-      ` : `
-          <button class="btn btn-allow" id="allow-${safeId}">${mode === 'trial' ? 'Approve Trial' : 'Allow Access'}</button>
-          ${mode === 'trial' ? `<button class="btn btn-deny" id="reject-${safeId}">Reject</button>` : ''}
-      `}
-    </div>
-  `;
-
-  // --- LOGIC FOR BLACKLIST ---
-  if (mode === 'active') {
-    div.querySelector(`#blacklist-${safeId}`).onclick = async () => {
-      if (confirm(`Blacklist ${email}? They will be forced to the payment page.`)) {
-        await set(ref(db, "blacklist/" + firebaseId), { email: email, timestamp: Date.now() });
-        await remove(ref(db, "allowed_users/" + firebaseId)); // Remove from active
-      }
-    };
-  }
-
-  if (mode === 'blacklisted') {
-    div.querySelector(`#unblock-${safeId}`).onclick = async () => {
-      await remove(ref(db, "blacklist/" + firebaseId));
-    };
-  }
+      div.innerHTML = `
+        <span class="email-info">${email} ${mode === 'trial' ? '<b style="color:#f59e0b;">(TRIAL)</b>' : ''}</span>
+        <div class="actions" style="display: flex; align-items: center; gap: 8px;">
+          ${mode === 'active' ? `
+              <input type="text" id="note-${safeId}" placeholder="Send a note..." style="padding: 6px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 0.8rem; width: 140px;">
+              <button class="btn btn-primary" id="send-${safeId}" style="background: #6366f1; padding: 6px 12px;">Send</button>
+              <button class="btn btn-deny" id="revoke-${safeId}">Revoke</button>
+          ` : `
+              <button class="btn btn-allow" id="allow-${safeId}">${mode === 'trial' ? 'Approve Trial' : 'Allow Access'}</button>
+              ${mode === 'trial' ? `<button class="btn btn-deny" id="reject-${safeId}">Reject</button>` : ''}
+          `}
+        </div>
+      `;
 
       // ALLOW / APPROVE TRIAL
       const allowBtn = div.querySelector(`#allow-${safeId}`);
@@ -199,14 +173,6 @@
 
       container.appendChild(div);
     }
-    // 4. Sync Blacklist
-onValue(ref(db, "blacklist"), (snapshot) => {
-  const list = document.getElementById("blacklist-list");
-  list.innerHTML = !snapshot.exists() ? '<p style="opacity: 0.4;">No blacklisted users.</p>' : "";
-  if (snapshot.exists()) {
-    snapshot.forEach(child => renderUser(list, child.val().email, "blacklisted"));
-  }
-});
   </script>
 </body>
 </html>
