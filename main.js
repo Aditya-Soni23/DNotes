@@ -55,20 +55,49 @@ window.addEventListener("DOMContentLoaded", cycleGreetings);
 // --- 2. AUTO-NUMBERING SYSTEM ---
 const setupAutoNumbering = (elId) => {
     const el = document.getElementById(elId);
-    if(!el) return;
+    if (!el) return;
     el.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             const start = el.selectionStart;
-            const end = el.selectionEnd;
-            const textBefore = el.value.substring(0, start);
-            const lines = textBefore.split("\n");
-            const lastLine = lines[lines.length - 1];
-            const match = lastLine.match(/^(\d+)\.\s/);
+            const text = el.value;
+            
+            // Find the current line the user is on
+            const textBefore = text.substring(0, start);
+            const linesBefore = textBefore.split("\n");
+            const currentLine = linesBefore[linesBefore.length - 1];
+            
+            // Check if current line starts with "Number. "
+            const match = currentLine.match(/^(\d+)\.\s/);
+            
             if (match) {
                 e.preventDefault();
-                const nextNum = parseInt(match[1]) + 1;
+                const currentNum = parseInt(match[1]);
+                const nextNum = currentNum + 1;
+                
+                // Get the text after the cursor
+                let textAfter = text.substring(start);
+                const linesAfter = textAfter.split("\n");
+                
+                // Smart Scan: Update numbers on subsequent lines
+                const updatedLinesAfter = linesAfter.map(line => {
+                    const lineMatch = line.match(/^(\d+)\.\s/);
+                    if (lineMatch) {
+                        const existingNum = parseInt(lineMatch[1]);
+                        // Only increment if the number is equal to or greater than the one we're inserting
+                        if (existingNum >= nextNum) {
+                            return (existingNum + 1) + line.substring(lineMatch[1].length);
+                        }
+                    }
+                    return line;
+                });
+
                 const insert = `\n${nextNum}. `;
-                el.value = el.value.substring(0, start) + insert + el.value.substring(end);
+                const newTextAfter = updatedLinesAfter.join("\n");
+                
+                // Update textarea value
+                el.value = textBefore + insert + newTextAfter;
+                
+                // Put cursor back in the right spot
                 el.selectionStart = el.selectionEnd = start + insert.length;
             }
         }
@@ -118,13 +147,14 @@ document.getElementById("addBtn").onclick = () => {
 document.getElementById("updateBtn").onclick = () => {
     const key = document.getElementById("editKey").value;
     
-    // Check if the element exists first to prevent the 'null' error
-    const reminderVal = document.getElementById("editReminderInput") ? document.getElementById("editReminderInput").value : "";
+    // Select the specific edit reminder input
+    const editReminderEl = document.getElementById("editReminderInput");
+    const updatedReminder = editReminderEl ? editReminderEl.value : "";
 
     update(ref(db, `users/${userKey}/notes/${key}`), {
         title: document.getElementById("editTitleInput").value,
         content: document.getElementById("editContentInput").value,
-        reminder: reminderVal,
+        reminder: updatedReminder, // This ensures the new date is sent to Firebase
         priority: document.getElementById("editPriorityInput").value,
         category: document.getElementById("editCategoryInput").value
     });
