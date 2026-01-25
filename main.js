@@ -118,10 +118,13 @@ document.getElementById("addBtn").onclick = () => {
 document.getElementById("updateBtn").onclick = () => {
     const key = document.getElementById("editKey").value;
     
+    // Check if the element exists first to prevent the 'null' error
+    const reminderVal = document.getElementById("editReminderInput") ? document.getElementById("editReminderInput").value : "";
+
     update(ref(db, `users/${userKey}/notes/${key}`), {
         title: document.getElementById("editTitleInput").value,
         content: document.getElementById("editContentInput").value,
-        reminder: document.getElementById("editReminderInput").value,
+        reminder: reminderVal,
         priority: document.getElementById("editPriorityInput").value,
         category: document.getElementById("editCategoryInput").value
     });
@@ -198,13 +201,23 @@ li.innerHTML = `
             li.querySelector(".done-btn").onclick = () => update(ref(db, `users/${userKey}/notes/${data.key}`), { completed: !data.completed });
             li.querySelector(".del-btn").onclick = () => confirm("Delete?") && remove(ref(db, `users/${userKey}/notes/${data.key}`));
             li.querySelector(".edit-btn").onclick = () => {
+                // Fill the hidden key
                 document.getElementById("editKey").value = data.key;
+                
+                // Fill Title and Content
                 document.getElementById("editTitleInput").value = data.title;
                 document.getElementById("editContentInput").value = data.content;
-                document.getElementById("editReminderInput").value = data.reminder;
-                // REMOVED: document.getElementById("editOrderInput").value = data.order; 
-                document.getElementById("editPriorityInput").value = data.priority;
-                document.getElementById("editCategoryInput").value = data.category; // Ensure category is set
+                
+                // Fill the Date (Make sure the ID in your HTML is 'editReminderInput')
+                const editDateEl = document.getElementById("editReminderInput");
+                if (editDateEl) {
+                    editDateEl.value = data.reminder || "";
+                }
+                
+                // Fill Dropdowns
+                document.getElementById("editPriorityInput").value = data.priority || "normal";
+                document.getElementById("editCategoryInput").value = data.category || "personal";
+                
                 toggleModal(editModal, true);
             };
             notesList.appendChild(li);
@@ -214,55 +227,64 @@ li.innerHTML = `
 
 renderNotes();
 
+
 document.getElementById("downloadPdfBtn").onclick = () => {
     const element = document.getElementById("notesList");
-    
-    // 1. Create a container to hold our Heading + the Notes
-    const pdfContainer = document.createElement("div");
-    pdfContainer.style.padding = "20px";
-    pdfContainer.style.fontFamily = "'Segoe UI', sans-serif";
-
-    // 2. Add the dynamic Heading
     const categoryName = currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
-    const heading = document.createElement("h1");
-    heading.innerText = `DNotes: ${categoryName} Notes Report`;
-    heading.style.color = "#1e293b";
-    heading.style.borderBottom = "2px solid #4f46e5";
-    heading.style.paddingBottom = "10px";
-    heading.style.marginBottom = "20px";
-    pdfContainer.appendChild(heading);
+    
+    // 1. Force the page to top before capture (Fixes blank page issues)
+    window.scrollTo(0, 0);
 
-    // 3. Clone and clean the notes
+    // 2. Create the wrapper for the PDF
+    const pdfContainer = document.createElement("div");
+    pdfContainer.style.padding = "10px";
+    pdfContainer.style.background = "#fff";
+
+    // 3. Header styling
+    const header = document.createElement("div");
+    header.innerHTML = `
+        <h1 style="color:#1e293b; border-bottom:3px solid #4f46e5; padding-bottom:10px; margin-bottom:20px; font-family: sans-serif;">
+            DNotes: ${categoryName} Report
+        </h1>
+    `;
+    pdfContainer.appendChild(header);
+
+    // 4. Clone and Clean
     const clone = element.cloneNode(true);
+    clone.style.display = "block"; // Ensure it's visible for the capture
+    
     clone.querySelectorAll('.note-item').forEach(note => {
-        // Remove strikethrough/fading for PDF
         note.style.opacity = "1";
-        const title = note.querySelector('.note-title');
-        if (title) {
-            title.style.textDecoration = "none";
-            title.style.color = "#1e293b";
-        }
-
-        // Show "Status" text for PDF
-        const statusText = note.querySelector('.note-status-print');
-        if (statusText) {
-            statusText.style.display = "block";
-        }
-
+        note.style.boxShadow = "none";
+        note.style.border = "1px solid #e2e8f0";
+        note.style.borderLeft = "5px solid " + (note.classList.contains('note-urgent') ? "#ef4444" : "#e2e8f0");
+        note.style.marginBottom = "15px";
+        note.style.pageBreakInside = "avoid"; // Keep note as one block
+        
         // Remove UI buttons
         const actions = note.querySelector('.note-actions');
         if (actions) actions.remove();
+        
+        // Show status for printing
+        const statusText = note.querySelector('.note-status-print');
+        if (statusText) statusText.style.display = "block";
     });
 
     pdfContainer.appendChild(clone);
 
-    // 4. PDF Configuration
+    // 5. PDF Options - Optimized for multi-page
     const opt = {
-        margin:       10,
-        filename:     `DNotes_${categoryName}_Report.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: 10,
+        filename: `DNotes_${categoryName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2, 
+            logging: false, 
+            scrollY: 0, // Critical: capture from the top of the container
+            useCORS: true 
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] } // Uses your CSS page-break rules
     };
 
     html2pdf().set(opt).from(pdfContainer).save();

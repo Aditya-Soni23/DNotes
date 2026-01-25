@@ -172,11 +172,39 @@ textarea {
   margin-top: 5px;
 }
 
+/* Make the date row span both columns of the main grid */
+.date-row {
+  grid-column: span 2; 
+  display: flex;
+  align-items: center; /* Vertically centers the text with the input */
+  gap: 15px;           /* Space between "Date" and the input box */
+  margin-top: 5px;
+}
+
+/* Ensure the label doesn't wrap and stays compact */
+.date-row h4 {
+  margin: 0;
+  white-space: nowrap;
+  color: var(--text-sub);
+  font-size: 0.9rem;
+}
+
+/* Make sure the input still grows to fill the remaining space */
+.date-row input {
+  flex: 1;
+  margin-top: 0; /* Remove top margin so it aligns perfectly with label */
+}
+
+
 /* Make reminder input span both columns (stay full width) */
 #reminderInput, #editReminderInput {
   grid-column: span 2;
 }
-
+/* PDF Export Logic: Prevents notes from splitting across pages */
+.note-item {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
 .modal-btns { 
   display: flex; 
   gap: 10px; 
