@@ -94,35 +94,38 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 });
 
 // --- FIREBASE DATA ---
+// --- 5. UPDATED FIREBASE DATA (Order removed) ---
 document.getElementById("addBtn").onclick = () => {
     const title = document.getElementById("titleInput").value.trim();
     if (!title) return alert("Title required");
+    
     push(notesRef, {
         title, 
         content: document.getElementById("contentInput").value.trim(),
         reminder: document.getElementById("reminderInput").value,
-        order: parseInt(document.getElementById("orderInput").value) || 1,
         priority: document.getElementById("priorityInput").value,
         category: document.getElementById("categoryInput").value,
         completed: false,
         createdAt: Date.now()
     });
+    
     toggleModal(taskModal, false);
     document.getElementById("titleInput").value = "";
     document.getElementById("contentInput").value = "";
+    document.getElementById("reminderInput").value = ""; // Clear reminder too
 };
 
 document.getElementById("updateBtn").onclick = () => {
     const key = document.getElementById("editKey").value;
-    // Updated path to include userKey
+    
     update(ref(db, `users/${userKey}/notes/${key}`), {
         title: document.getElementById("editTitleInput").value,
         content: document.getElementById("editContentInput").value,
         reminder: document.getElementById("editReminderInput").value,
-        order: parseInt(document.getElementById("editOrderInput").value) || 1,
         priority: document.getElementById("editPriorityInput").value,
         category: document.getElementById("editCategoryInput").value
     });
+    
     toggleModal(editModal, false);
 };
 // --- LISTEN FOR ADMIN MESSAGES ---
@@ -165,8 +168,8 @@ function renderNotes() {
         tasks.sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
-            if (a.order !== b.order) return a.order - b.order;
-            return b.createdAt - a.createdAt;
+            // Removed order comparison
+            return b.createdAt - a.createdAt; // Newer notes at the top
         });
 
         tasks.forEach((data, index) => { // Added index here
@@ -199,8 +202,9 @@ li.innerHTML = `
                 document.getElementById("editTitleInput").value = data.title;
                 document.getElementById("editContentInput").value = data.content;
                 document.getElementById("editReminderInput").value = data.reminder;
-                document.getElementById("editOrderInput").value = data.order;
+                // REMOVED: document.getElementById("editOrderInput").value = data.order; 
                 document.getElementById("editPriorityInput").value = data.priority;
+                document.getElementById("editCategoryInput").value = data.category; // Ensure category is set
                 toggleModal(editModal, true);
             };
             notesList.appendChild(li);

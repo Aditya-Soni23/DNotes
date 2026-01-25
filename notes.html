@@ -48,52 +48,50 @@
   </button>
   <div id="taskModal" class="modal">
     <div class="modal-content">
-      <h3>New Note</h3>
-      <input type="text" id="titleInput" placeholder="Title" />
-      <textarea id="contentInput" placeholder="Note details... (Type 1. to start a list)"></textarea>
-      <div class="grid-inputs">
-        <input type="datetime-local" id="reminderInput" />
-        <input type="number" id="orderInput" placeholder="Order (1, 2, 3...)" min="1" value="1" />
-        <select id="priorityInput">
-          <option value="normal">Normal</option>
-          <option value="urgent">Urgent</option>
-        </select>
-        <select id="categoryInput">
-          <option value="personal">Personal</option>
-          <option value="professional">Professional</option>
-        </select>
-      </div>
-      <div class="modal-btns">
-        <button id="addBtn" class="btn btn-primary">Save Note</button>
-        <button id="closeModalBtn" class="btn btn-cancel">Cancel</button>
-      </div>
+        <h3>New Note</h3>
+        <input type="text" id="titleInput" placeholder="Title" />
+        <textarea id="contentInput" placeholder="Note details... (Type 1. to start a list)"></textarea>
+        <div class="grid-inputs">
+            <input type="datetime-local" id="reminderInput" />
+            <select id="priorityInput">
+                <option value="normal">Normal Priority</option>
+                <option value="urgent">Urgent Priority</option>
+            </select>
+            <select id="categoryInput">
+                <option value="personal">Personal</option>
+                <option value="professional">Professional</option>
+            </select>
+        </div>
+        <div class="modal-btns">
+            <button id="addBtn" class="btn btn-primary">Save Note</button>
+            <button id="closeModalBtn" class="btn btn-cancel">Cancel</button>
+        </div>
     </div>
-  </div>
+</div>
 
-  <div id="editModal" class="modal">
+<div id="editModal" class="modal">
     <div class="modal-content">
-      <h3>Edit Note</h3>
-      <input type="hidden" id="editKey" />
-      <input type="text" id="editTitleInput" />
-      <textarea id="editContentInput"></textarea>
-      <div class="grid-inputs">
-        <input type="datetime-local" id="editReminderInput" />
-        <input type="number" id="editOrderInput" min="1" />
-        <select id="editPriorityInput">
-          <option value="normal">Normal</option>
-          <option value="urgent">Urgent</option>
-        </select>
-        <select id="editCategoryInput">
-          <option value="personal">Personal</option>
-          <option value="professional">Professional</option>
-        </select>
-      </div>
-      <div class="modal-btns">
-        <button id="updateBtn" class="btn btn-primary">Update</button>
-        <button id="closeEditModalBtn" class="btn btn-cancel">Cancel</button>
-      </div>
+        <h3>Edit Note</h3>
+        <input type="hidden" id="editKey" />
+        <input type="text" id="editTitleInput" />
+        <textarea id="editContentInput"></textarea>
+        <div class="grid-inputs">
+            <input type="datetime-local" id="editReminderInput" />
+            <select id="editPriorityInput">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+            </select>
+            <select id="editCategoryInput">
+                <option value="personal">Personal</option>
+                <option value="professional">Professional</option>
+            </select>
+        </div>
+        <div class="modal-btns">
+            <button id="updateBtn" class="btn btn-primary">Update</button>
+            <button id="closeEditModalBtn" class="btn btn-cancel">Cancel</button>
+        </div>
     </div>
-  </div>
+</div>
 
   <script type="module" src="main.js"></script>
 </body>
