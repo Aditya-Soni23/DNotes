@@ -167,44 +167,42 @@
     const ADMIN_EMAIL = "adityasonihyderabad@gmail.com";
   
     const handleLogin = async (isAdminAttempt = false) => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const email = result.user.email;
-    const userKey = email.replace(/\./g, "_");
-
-    localStorage.setItem("dnotes_user", userKey);
-
-    // 1. Admin Check
-    if (email === ADMIN_EMAIL) {
-      window.location.href = isAdminAttempt ? "admin.html" : "notes.html";
-      return;
-    }
-
-    // 2. Access Check
     try {
-      const accessRef = ref(db, 'allowed_users/' + userKey);
-      const snapshot = await get(accessRef);
+      const result = await signInWithPopup(auth, provider);
+      const email = result.user.email;
+      const userKey = email.replace(/\./g, "_");
 
-      if (snapshot.exists()) {
-        window.location.href = "notes.html";
-      } else {
-        throw new Error("not_allowed");
+      localStorage.setItem("dnotes_user", userKey);
+
+      // 1. Admin Check
+      if (email === ADMIN_EMAIL) {
+        window.location.href = isAdminAttempt ? "admin.html" : "notes.html";
+        return;
       }
-    } catch (e) {
-      // 3. Log Attempt & Redirect to Payment
-      await set(ref(db, 'login_attempts/' + userKey), {
-        email: email,
-        timestamp: Date.now()
-      });
-      window.location.href = "payment.html";
-    }
 
-  } catch (err) {
-    console.error("Login Error:", err);
-    alert("Authentication failed. Please try again.");
-  }
-};
+      // 2. TEMPORARY AUTO-GRANT ACCESS
+      // This block automatically adds the user to 'allowed_users'
+      try {
+        await set(ref(db, 'allowed_users/' + userKey), {
+          email: email,
+          grantedAt: Date.now(),
+          status: "auto-granted"
+        });
+        
+        // Redirect straight to notes
+        window.location.href = "notes.html";
+      } catch (dbError) {
+        console.error("Database Error:", dbError);
+        alert("Error setting up your account. Please contact support.");
+      }
+
+    } catch (err) {
+      console.error("Login Error:", err);
+      alert("Authentication failed. Please try again.");
+    }
+  };
   
+
     document.getElementById("loginBtn").onclick = () => handleLogin(false);
     document.getElementById("adminBtn").onclick = () => handleLogin(true);
   </script>

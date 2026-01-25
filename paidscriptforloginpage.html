@@ -1,0 +1,63 @@
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+// Realtime Database Imports
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBZTkOnUFqFdNAoK63dI2iCzDoykAjSylI",
+  authDomain: "dnotes-cf9f2.firebaseapp.com",
+  databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com", // Double check this URL in your Firebase Console!
+  projectId: "dnotes-cf9f2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app); 
+const provider = new GoogleAuthProvider();
+
+const ADMIN_EMAIL = "adityasonihyderabad@gmail.com";
+
+const handleLogin = async (isAdminAttempt = false) => {
+try {
+const result = await signInWithPopup(auth, provider);
+const email = result.user.email;
+const userKey = email.replace(/\./g, "_");
+
+localStorage.setItem("dnotes_user", userKey);
+
+// 1. Admin Check
+if (email === ADMIN_EMAIL) {
+  window.location.href = isAdminAttempt ? "admin.html" : "notes.html";
+  return;
+}
+
+// 2. Access Check
+try {
+  const accessRef = ref(db, 'allowed_users/' + userKey);
+  const snapshot = await get(accessRef);
+
+  if (snapshot.exists()) {
+    window.location.href = "notes.html";
+  } else {
+    throw new Error("not_allowed");
+  }
+} catch (e) {
+  // 3. Log Attempt & Redirect to Payment
+  await set(ref(db, 'login_attempts/' + userKey), {
+    email: email,
+    timestamp: Date.now()
+  });
+  window.location.href = "payment.html";
+}
+
+} catch (err) {
+console.error("Login Error:", err);
+alert("Authentication failed. Please try again.");
+}
+};
+
+
+document.getElementById("loginBtn").onclick = () => handleLogin(false);
+document.getElementById("adminBtn").onclick = () => handleLogin(true);
+</script>
