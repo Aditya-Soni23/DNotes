@@ -1,113 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DNotes | Upgrade</title>
   <link rel="icon" href="Diamond_Comapny_Logo.png" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f43f5e, #ec4899);
+      background: radial-gradient(circle at top, #fb7185, #be185d);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      color: #fff;
     }
 
     .card {
       width: 100%;
       max-width: 520px;
-      padding: 2.5rem;
-      background: rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(18px);
-      border-radius: 26px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+      padding: 2.6rem;
+      border-radius: 28px;
+      background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.25),
+        rgba(255,255,255,0.1)
+      );
+      backdrop-filter: blur(22px);
+      box-shadow:
+        0 30px 80px rgba(0,0,0,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.15);
+      animation: float 6s ease-in-out infinite;
       text-align: center;
-      color: #fff;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
     }
 
     h1 {
-      margin-bottom: 0.6rem;
-      font-size: 1.9rem;
+      font-size: 2rem;
+      margin-bottom: 0.4rem;
       font-weight: 700;
     }
 
     .subtitle {
       font-size: 0.95rem;
-      color: rgba(255,255,255,0.85);
-      margin-bottom: 1.6rem;
+      opacity: 0.9;
+      margin-bottom: 1.8rem;
     }
 
     .qr-box {
       background: #fff;
-      padding: 16px;
-      border-radius: 16px;
+      padding: 18px;
+      border-radius: 18px;
       display: inline-block;
-      margin-bottom: 1.4rem;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+      margin-bottom: 1.6rem;
     }
 
     .qr-box img {
       width: 180px;
-      height: auto;
+      display: block;
     }
 
     .price {
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       font-weight: 700;
-      margin-bottom: 1.4rem;
+      margin-bottom: 0.6rem;
     }
 
     .price span {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 500;
+      opacity: 0.85;
     }
 
     .info {
       font-size: 0.9rem;
-      margin-bottom: 1.2rem;
       opacity: 0.9;
+      margin-bottom: 1.4rem;
     }
 
     input {
       width: 100%;
-      padding: 14px;
-      border-radius: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
       border: none;
       margin-bottom: 12px;
       font-size: 0.95rem;
       outline: none;
     }
 
+    input::placeholder {
+      color: #999;
+    }
+
     button {
       width: 100%;
       padding: 15px;
-      border-radius: 14px;
+      border-radius: 16px;
       border: none;
       font-weight: 700;
       font-size: 1rem;
-      background: #ffffff;
-      color: #ec4899;
       cursor: pointer;
-      margin-top: 8px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    button:hover {
-      opacity: 0.95;
+    #submitPayment {
+      background: linear-gradient(135deg, #fff, #ffe4e6);
+      color: #be185d;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    #submitPayment:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+    }
+
+    #requestTrial {
+      margin-top: 14px;
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.85);
+      color: #fff;
+      opacity: 0.85;
+    }
+
+    #requestTrial:hover {
+      opacity: 1;
+      transform: translateY(-1px);
     }
 
     .back {
       display: block;
-      margin-top: 1.4rem;
+      margin-top: 1.6rem;
       font-size: 0.85rem;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.75);
       text-decoration: none;
+    }
+
+    .contact {
+      margin-top: 1.8rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      font-size: 0.85rem;
+      opacity: 0.95;
+    }
+
+    .contact-title {
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    .contact a {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .contact-fast {
+      margin-top: 0.4rem;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -116,29 +177,32 @@
 
   <div class="card">
     <h1>Upgrade to DNotes Pro</h1>
-    <p class="subtitle">
-      Scan the QR code and complete your payment.
-    </p>
+    <p class="subtitle">Scan the QR code and complete your payment</p>
 
-    <!-- QR CODE -->
     <div class="qr-box">
-      <!-- REPLACE src WITH YOUR REAL QR IMAGE -->
       <img src="payment.jpeg" alt="Payment QR Code">
     </div>
 
     <div class="price">₹999 <span>/ month</span></div>
 
     <p class="info">
-      Once you've paid, enter your <b>email</b> and <b>transaction ID</b> below.
+      After payment, enter your <b>email</b> and <b>transaction ID</b>
     </p>
 
-    <!-- PAYMENT FORM -->
-    <input type="email" id="email" placeholder="Your Email" required>
-    <input type="text" id="txnId" placeholder="Transaction ID (UTR / TXN ID)" required>
+    <input type="email" id="email" placeholder="Your Email">
+    <input type="text" id="txnId" placeholder="Transaction ID (UTR / TXN ID)">
 
     <button id="submitPayment">Submit Payment Details</button>
+    <button id="requestTrial">Request 2-Day Free Trial</button>
 
     <a href="index.html" class="back">← Back to Login</a>
+
+    <div class="contact">
+      <p class="contact-title">Need help?</p>
+      <p>📧 <a href="mailto:adityasonihyderabad@gmail.com">adityasonihyderabad@gmail.com</a></p>
+      <p>💬 <a href="https://wa.me/919154995314" target="_blank">+91 91549 95314</a></p>
+      <p class="contact-fast">⚡ Fastest: WhatsApp</p>
+    </div>
   </div>
 
   <!-- FIREBASE -->
@@ -169,14 +233,31 @@
       }
 
       push(ref(db, "payments"), {
-        email: email,
-        txnId: txnId,
+        email,
+        txnId,
         time: new Date().toISOString()
       });
 
-      alert("Payment details submitted! We’ll verify and activate your access soon.");
+      alert("Payment submitted! We’ll verify and activate your access.");
       document.getElementById("email").value = "";
       document.getElementById("txnId").value = "";
+    };
+
+    document.getElementById("requestTrial").onclick = () => {
+      const email = document.getElementById("email").value.trim();
+      if (!email || !email.includes("@")) {
+        alert("Enter a valid email first.");
+        return;
+      }
+
+      push(ref(db, "trial_requests"), {
+        email,
+        requestDate: new Date().toISOString(),
+        status: "pending",
+        type: "2_day_trial"
+      });
+
+      alert("Trial request sent! We’ll activate it shortly.");
     };
   </script>
 

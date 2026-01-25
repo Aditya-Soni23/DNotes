@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DNotes | Admin Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    #admin-content { display: none; }
+    body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+    .container { width: 100%; max-width: 800px; }
+    .header { text-align: center; margin-bottom: 40px; }
+    .header h1 { font-size: 2rem; margin-bottom: 10px; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 24px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    h2 { font-size: 1.1rem; margin-top: 0; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    .user-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255, 255, 255, 0.05); margin-top: 12px; border-radius: 12px; transition: 0.3s; }
+    .user-row:hover { background: rgba(255, 255, 255, 0.08); }
+    .email-info { font-weight: 500; color: #e2e8f0; }
+    .actions { display: flex; gap: 10px; }
+    .btn { padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s ease; }
+    .btn-allow { background: #10b981; color: white; }
+    .btn-trial { background: #f59e0b; color: white; } /* Orange for trials */
+    .btn-deny { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; }
+    #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+  </style>
+</head>
+<body>
+
+  <div id="loading-screen">Checking permissions...</div>
+
+  <div id="admin-content" class="container">
+    <div class="header">
+      <h1>Admin Control Center</h1>
+      <p style="opacity: 0.6;">Manage access for DNotes Cloud</p>
+    </div>
+
+    <div class="card">
+      <h2>Pending Requests (Login Attempts)</h2>
+      <div id="pending-list">
+        <p style="opacity: 0.4; font-size: 0.9rem;">No new access requests.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="color: #f59e0b;">Trial Requests (2-Day Free Trial)</h2>
+      <div id="trial-list">
+        <p style="opacity: 0.4; font-size: 0.9rem;">No trial requests.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Active Members</h2>
+      <div id="allowed-list"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBZTkOnUFqFdNAoK63dI2iCzDoykAjSylI",
+      authDomain: "dnotes-cf9f2.firebaseapp.com",
+      databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com",
+      projectId: "dnotes-cf9f2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const ADMIN_EMAIL = "adityasonihyderabad@gmail.com";
+
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.email === ADMIN_EMAIL) {
+        document.getElementById("loading-screen").style.display = "none";
+        document.getElementById("admin-content").style.display = "block";
+        startListening();
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    function startListening() {
+      // 1. Sync Allowed Users
+      onValue(ref(db, "allowed_users"), (snapshot) => {
+        const list = document.getElementById("allowed-list");
+        list.innerHTML = "";
+        if (snapshot.exists()) {
+          snapshot.forEach(child => renderUser(list, child.val().email, "active"));
+        }
+      });
+
+      // 2. Sync Pending Logins
+      onValue(ref(db, "login_attempts"), (snapshot) => {
+        const list = document.getElementById("pending-list");
+        list.innerHTML = !snapshot.exists() ? '<p style="opacity: 0.4;">No new access requests.</p>' : "";
+        if (snapshot.exists()) {
+          snapshot.forEach(child => renderUser(list, child.val().email, "pending"));
+        }
+      });
+
+      // 3. Sync Trial Requests (NEW)
+      onValue(ref(db, "trial_requests"), (snapshot) => {
+        const list = document.getElementById("trial-list");
+        list.innerHTML = !snapshot.exists() ? '<p style="opacity: 0.4;">No trial requests.</p>' : "";
+        if (snapshot.exists()) {
+          snapshot.forEach(child => {
+            // child.key is the random push ID from Firebase
+            renderUser(list, child.val().email, "trial", child.key);
+          });
+        }
+      });
+    }
+
+    function renderUser(container, email, mode, pushKey = null) {
+      const div = document.createElement("div");
+      div.className = "user-row";
+      const firebaseId = email.replace(/\./g, "_"); 
+      const safeId = email.replace(/[@.]/g, "_"); 
+
+      div.innerHTML = `
+        <span class="email-info">${email} ${mode === 'trial' ? '<b style="color:#f59e0b;">(TRIAL)</b>' : ''}</span>
+        <div class="actions" style="display: flex; align-items: center; gap: 8px;">
+          ${mode === 'active' ? `
+              <input type="text" id="note-${safeId}" placeholder="Send a note..." style="padding: 6px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 0.8rem; width: 140px;">
+              <button class="btn btn-primary" id="send-${safeId}" style="background: #6366f1; padding: 6px 12px;">Send</button>
+              <button class="btn btn-deny" id="revoke-${safeId}">Revoke</button>
+          ` : `
+              <button class="btn btn-allow" id="allow-${safeId}">${mode === 'trial' ? 'Approve Trial' : 'Allow Access'}</button>
+              ${mode === 'trial' ? `<button class="btn btn-deny" id="reject-${safeId}">Reject</button>` : ''}
+          `}
+        </div>
+      `;
+
+      // ALLOW / APPROVE TRIAL
+      const allowBtn = div.querySelector(`#allow-${safeId}`);
+      if (allowBtn) {
+        allowBtn.onclick = async () => {
+          await set(ref(db, "allowed_users/" + firebaseId), { email: email });
+          if (mode === 'pending') await remove(ref(db, "login_attempts/" + firebaseId));
+          if (mode === 'trial') await remove(ref(db, "trial_requests/" + pushKey));
+        };
+      }
+
+      // REJECT TRIAL
+      const rejectBtn = div.querySelector(`#reject-${safeId}`);
+      if (rejectBtn) {
+        rejectBtn.onclick = async () => {
+          await remove(ref(db, "trial_requests/" + pushKey));
+        };
+      }
+
+      // SEND NOTE & REVOKE
+      if (mode === 'active') {
+        div.querySelector(`#send-${safeId}`).onclick = async () => {
+          const noteText = document.getElementById(`note-${safeId}`).value.trim();
+          if (!noteText) return alert("Please type a message first!");
+          await set(ref(db, `users/${firebaseId}/admin_msg`), { text: noteText, timestamp: Date.now() });
+          alert("Note sent!");
+          document.getElementById(`note-${safeId}`).value = "";
+        };
+
+        div.querySelector(`#revoke-${safeId}`).onclick = async () => {
+          if (confirm("Revoke access for " + email + "?")) {
+            await remove(ref(db, "allowed_users/" + firebaseId));
+          }
+        };
+      }
+
+      container.appendChild(div);
+    }
+  </script>
+</body>
+</html>

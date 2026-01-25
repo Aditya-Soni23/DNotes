@@ -17,7 +17,7 @@ const db = getDatabase(app);
 // --- 0. AUTH CHECK & DYNAMIC PATH ---
 const userKey = localStorage.getItem("dnotes_user");
 if (!userKey) {
-    window.location.href = "index.html"; // Boot them out if not logged in
+    window.location.href = "index.html";
 }
 
 // All data now lives under users/sanitized_email/notes
@@ -125,7 +125,35 @@ document.getElementById("updateBtn").onclick = () => {
     });
     toggleModal(editModal, false);
 };
+// --- LISTEN FOR ADMIN MESSAGES ---
+const adminMsgRef = ref(db, `users/${userKey}/admin_msg`);
+onValue(adminMsgRef, (snapshot) => {
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        // Create a special alert or banner at the top of the notes list
+        const msgDiv = document.createElement("div");
+        msgDiv.style = "background: #6366f1; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; position: relative; font-weight: 500; border-left: 5px solid #4338ca;";
+        msgDiv.innerHTML = `
+            <small style="opacity:0.8; display:block; margin-bottom:5px;">MESSAGE FROM ADMIN:</small>
+            ${data.text}
+            <button id="closeMsg" style="position:absolute; right:10px; top:10px; background:none; border:none; color:white; cursor:pointer; font-weight:bold;">✕</button>
+        `;
+        
+        // Push it to the top of the notes container
+        const container = document.querySelector(".notes-section");
+        const existingMsg = document.getElementById("admin-broadcast");
+        if (existingMsg) existingMsg.remove(); // Remove old one if it exists
+        
+        msgDiv.id = "admin-broadcast";
+        container.prepend(msgDiv);
 
+        document.getElementById("closeMsg").onclick = () => {
+            // Optional: Remove it from DB when user closes it
+            // remove(adminMsgRef); 
+            msgDiv.remove();
+        };
+    }
+});
 function renderNotes() {
     onValue(notesRef, (snapshot) => {
         notesList.innerHTML = "";
