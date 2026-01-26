@@ -148,14 +148,13 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    // Realtime Database Imports
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
   
     const firebaseConfig = {
       apiKey: "AIzaSyBZTkOnUFqFdNAoK63dI2iCzDoykAjSylI",
       authDomain: "dnotes-cf9f2.firebaseapp.com",
-      databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com", // Double check this URL in your Firebase Console!
+      databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com",
       projectId: "dnotes-cf9f2"
     };
   
@@ -165,49 +164,61 @@
     const provider = new GoogleAuthProvider();
   
     const ADMIN_EMAIL = "adityasonihyderabad@gmail.com";
-  
-    const handleLogin = async (isAdminAttempt = false) => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const email = result.user.email;
-    const userKey = email.replace(/\./g, "_");
 
-    localStorage.setItem("dnotes_user", userKey);
-
-    // 1. Admin Check
-    if (email === ADMIN_EMAIL) {
-      window.location.href = isAdminAttempt ? "admin.html" : "notes.html";
-      return;
-    }
-
-    // 2. BLACKLIST CHECK (Priority)
-    const blacklistRef = ref(db, 'blacklist/' + userKey);
-    const blacklistSnap = await get(blacklistRef);
-    
-    if (blacklistSnap.exists()) {
-      window.location.href = "payment.html"; // Send to payment if blacklisted
-      return;
-    }
-
-    // 3. TEMPORARY AUTO-GRANT ACCESS
-    await set(ref(db, 'allowed_users/' + userKey), {
-      email: email,
-      grantedAt: Date.now(),
-      status: "auto-granted"
+    // --- 🚀 AUTO-LOGIN LOGIC ---
+    // Check if user is already logged in via LocalStorage on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedUser = localStorage.getItem("dnotes_user");
+      if (savedUser) {
+        // If they are the admin, you might want a different logic, 
+        // but typically redirected to notes is safest for "Persistence"
+        window.location.href = "notes.html";
+      }
     });
-    
-    window.location.href = "notes.html";
 
-  } catch (err) {
-    console.error("Login Error:", err);
-    alert("Authentication failed.");
-  }
-};
-  
+    const handleLogin = async (isAdminAttempt = false) => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const email = result.user.email;
+        const userKey = email.replace(/\./g, "_");
+
+        // Save to LocalStorage so the app "remembers" them
+        localStorage.setItem("dnotes_user", userKey);
+
+        // 1. Admin Check
+        if (email === ADMIN_EMAIL) {
+          window.location.href = isAdminAttempt ? "admin.html" : "notes.html";
+          return;
+        }
+
+        // 2. BLACKLIST CHECK
+        const blacklistRef = ref(db, 'blacklist/' + userKey);
+        const blacklistSnap = await get(blacklistRef);
+        
+        if (blacklistSnap.exists()) {
+          // If blacklisted, remove the local storage so they don't get stuck in a loop
+          localStorage.removeItem("dnotes_user");
+          window.location.href = "payment.html";
+          return;
+        }
+
+        // 3. TEMPORARY AUTO-GRANT ACCESS
+        await set(ref(db, 'allowed_users/' + userKey), {
+          email: email,
+          grantedAt: Date.now(),
+          status: "auto-granted"
+        });
+        
+        window.location.href = "notes.html";
+
+      } catch (err) {
+        console.error("Login Error:", err);
+        alert("Authentication failed.");
+      }
+    };
 
     document.getElementById("loginBtn").onclick = () => handleLogin(false);
     document.getElementById("adminBtn").onclick = () => handleLogin(true);
   </script>
-
 </body>
 </html>

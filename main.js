@@ -329,3 +329,30 @@ document.getElementById("logoutBtn").onclick = () => {
         window.location.href = "index.html";
     }
 };
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("Service Worker Registered!"))
+      .catch((err) => console.log("SW Registration Failed", err));
+}
+function startHourlyReminders() {
+    // Request permission first
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            setInterval(() => {
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification("DNotes 💎", {
+                        body: "Time to check your notes and reminders!",
+                        icon: "Diamond_Comapny_Logo.png",
+                        vibrate: [200, 100, 200],
+                        badge: "Diamond_Comapny_Logo.png"
+                    });
+                });
+            }, 3600000); // 3600000ms = 1 hour
+        }
+    });
+}
+
+// Start the timer when the user logs in
+if (localStorage.getItem("dnotes_user")) {
+    startHourlyReminders();
+}
