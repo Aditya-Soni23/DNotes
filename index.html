@@ -64,10 +64,9 @@
     }
 
     .logo {
-      width: 70px;
-      height: 70px;
-      border-radius: 16px;
-      background: white;
+      width: 100px;
+      height: 100px;
+      border-radius: 15%;
       padding: 10px;
       margin: 0 auto 1.2rem;
     }
@@ -135,11 +134,11 @@
 
   <div class="login-card">
     <div class="logo">
-      <img src="DNotes.png" alt="DNotes Logo">
+      <img style="border-radius: 30%;" src="DNotes.png" alt="DNotes Logo">
     </div>
 
     <h2>Welcome to DNotes</h2>
-    <p>Your secure cloud notebook.<br>Sign in to continue.</p>
+    <p>Your secure cloud notebook.<br>Write your thoughts, notes, reminders or anything you'd like!</p>
 
     <button class="google-btn" id="loginBtn">
       <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/250px-Google_%22G%22_logo.svg.png">
@@ -154,80 +153,71 @@
         <!-- 👻 Admin portal (almost invisible) -->
         <button class="admin-btn" id="adminBtn">admin portal</button>
   </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-  
+    
     const firebaseConfig = {
       apiKey: "AIzaSyBZTkOnUFqFdNAoK63dI2iCzDoykAjSylI",
       authDomain: "dnotes-cf9f2.firebaseapp.com",
       databaseURL: "https://dnotes-cf9f2-default-rtdb.firebaseio.com",
       projectId: "dnotes-cf9f2"
     };
-  
+    
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getDatabase(app); 
+    const db = getDatabase(app);
     const provider = new GoogleAuthProvider();
-  
+    
     const ADMIN_EMAIL = "adityasonihyderabad@gmail.com";
-
-    // --- 🚀 AUTO-LOGIN LOGIC ---
-    // Check if user is already logged in via LocalStorage on page load
+    
+    // AUTO LOGIN
     window.addEventListener("DOMContentLoaded", () => {
-      const savedUser = localStorage.getItem("dnotes_user");
+     const savedUser = localStorage.getItem("dnotes_user");
       if (savedUser) {
-        // If they are the admin, you might want a different logic, 
-        // but typically redirected to notes is safest for "Persistence"
         window.location.href = "notes.html";
-      }
+     }
     });
-
+    
     const handleLogin = async (isAdminAttempt = false) => {
       try {
         const result = await signInWithPopup(auth, provider);
         const email = result.user.email;
         const userKey = email.replace(/\./g, "_");
-
-        // Save to LocalStorage so the app "remembers" them
+    
         localStorage.setItem("dnotes_user", userKey);
-
-        // 1. Admin Check
+    
         if (email === ADMIN_EMAIL) {
           window.location.href = isAdminAttempt ? "admin.html" : "notes.html";
           return;
         }
-
-        // 2. BLACKLIST CHECK
+    
         const blacklistRef = ref(db, 'blacklist/' + userKey);
         const blacklistSnap = await get(blacklistRef);
-        
+    
         if (blacklistSnap.exists()) {
-          // If blacklisted, remove the local storage so they don't get stuck in a loop
           localStorage.removeItem("dnotes_user");
           window.location.href = "payment.html";
           return;
         }
-
-        // 3. TEMPORARY AUTO-GRANT ACCESS
+    
         await set(ref(db, 'allowed_users/' + userKey), {
           email: email,
           grantedAt: Date.now(),
           status: "auto-granted"
         });
-        
+    
         window.location.href = "notes.html";
-
+    
       } catch (err) {
         console.error("Login Error:", err);
         alert("Authentication failed.");
       }
     };
-
+    
     document.getElementById("loginBtn").onclick = () => handleLogin(false);
     document.getElementById("adminBtn").onclick = () => handleLogin(true);
-  </script>
+    </script>
 </body>
 </html>

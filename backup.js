@@ -15,20 +15,18 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // --- 0. AUTH CHECK & DYNAMIC PATH ---
-const userKey = localStorage.getItem("dnotes_user");
-if (!userKey) {
-    window.location.href = "index.html";
-};
+//const userKey = localStorage.getItem("dnotes_user");
+//if (!userKey) {
+  //  window.location.href = "index.html";
+//}
 
- //All data now lives under users/sanitized_email/notes
-const notesRef = ref(db, `users/${userKey}/notes`);
+// All data now lives under users/sanitized_email/notes
+//const notesRef = ref(db, `users/${userKey}/notes`);
 
 const notesList = document.getElementById("notesList");
 const taskModal = document.getElementById("taskModal");
 const editModal = document.getElementById("editModal");
 let currentFilter = "personal";
-let sortMode = "none";
-let draggedItem = null;
 
 // --- 1. IPHONE STYLE WELCOME SEQUENCER ---
 const greetings = ["Hello", "नमस्ते"];
@@ -53,84 +51,6 @@ function cycleGreetings() {
     }
 }
 window.addEventListener("DOMContentLoaded", cycleGreetings);
-
-const sidebar = document.getElementById("sidebar");
-const menuBtn = document.getElementById("menuBtn");
-const overlay = document.getElementById("overlay");
-
-menuBtn.onclick = () => {
-    sidebar.classList.add("open");
-    overlay.classList.add("show");
-};
-
-overlay.onclick = () => {
-    sidebar.classList.remove("open");
-    overlay.classList.remove("show");
-};
-
-
-
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-
-let searchQuery = "";
-
-// Toggle search bar
-searchBtn.onclick = () => {
-    searchInput.classList.toggle("active");
-    searchInput.focus();
-};
-
-// Capture typing
-searchInput.oninput = (e) => {
-    searchQuery = e.target.value.toLowerCase();
-
-    if (!searchQuery) {
-        searchInput.classList.remove("active");
-    }
-
-    renderNotes();
-};
-
-
-const sortToggle = document.getElementById("sortToggle");
-const sortDropdown = document.getElementById("sortDropdown");
-
-// open/close dropdown
-sortToggle.onclick = () => {
-    sortDropdown.classList.toggle("show");
-};
-
-// select option
-sortDropdown.querySelectorAll("div").forEach(option => {
-    option.onclick = () => {
-        sortMode = option.dataset.sort;
-
-        // change button text
-        sortToggle.innerText = `Filter: ${option.innerText} ⏷`;
-
-        sortDropdown.classList.remove("show");
-        renderNotes();
-    };
-});
-
-// close when clicking outside
-document.addEventListener("click", (e) => {
-    if (!sortToggle.contains(e.target) && !sortDropdown.contains(e.target)) {
-        sortDropdown.classList.remove("show");
-    }
-});
-
-            
-document.addEventListener("click", () => {
-    document.querySelectorAll(".menu-dropdown").forEach(d => {
-        d.classList.remove("show");
-    });
-
-    document.querySelectorAll(".note-item").forEach(n => {
-        n.classList.remove("active");
-    });
-});
 
 // --- 2. AUTO-NUMBERING SYSTEM ---
 const setupAutoNumbering = (elId) => {
@@ -192,25 +112,12 @@ document.getElementById("openModalBtn").onclick = () => toggleModal(taskModal, t
 document.getElementById("closeModalBtn").onclick = () => toggleModal(taskModal, false);
 document.getElementById("closeEditModalBtn").onclick = () => toggleModal(editModal, false);
 
-const filterTabs = document.querySelector(".filter-tabs");
-
 document.querySelectorAll(".filter-btn").forEach(btn => {
     btn.onclick = () => {
         document.querySelector(".filter-btn.active").classList.remove("active");
         btn.classList.add("active");
-
         currentFilter = btn.dataset.filter;
-
-        // move slider
-        if (currentFilter === "professional") {
-            filterTabs.classList.add("professional");
-        } else {
-            filterTabs.classList.remove("professional");
-        }
-
-        document.getElementById("listTitle").innerText =
-            `${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)} Notes`;
-
+        document.getElementById("listTitle").innerText = `${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)} Notes`;
         renderNotes();
     };
 });
@@ -228,9 +135,7 @@ document.getElementById("addBtn").onclick = () => {
         priority: document.getElementById("priorityInput").value,
         category: document.getElementById("categoryInput").value,
         completed: false,
-        createdAt: Date.now(),
-        color: "#ffffff",
-        order: Date.now()
+        createdAt: Date.now()
     });
     
     toggleModal(taskModal, false);
@@ -285,199 +190,65 @@ onValue(adminMsgRef, (snapshot) => {
         };
     }
 });
-
-
-
 function renderNotes() {
     onValue(notesRef, (snapshot) => {
         notesList.innerHTML = "";
         let tasks = [];
         snapshot.forEach(child => { tasks.push({ key: child.key, ...child.val() }); });
 
-        tasks = tasks.filter(t => {
-            const matchesCategory = t.category === currentFilter;
+        tasks = tasks.filter(t => t.category === currentFilter);
         
-            const matchesSearch =
-                t.title.toLowerCase().includes(searchQuery) ||
-                t.content.toLowerCase().includes(searchQuery);
-        
-            return matchesCategory && matchesSearch;
+        tasks.sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
+            // Removed order comparison
+            return b.createdAt - a.createdAt; // Newer notes at the top
         });
-        
-        // 👉 ADD THIS HERE
-        document.getElementById("noteCount").innerText =
-            `${tasks.length} Note${tasks.length !== 1 ? 's' : ''}`;
-
-            tasks.sort((a, b) => {
-
-                // 🧠 MY ORDER (drag & drop)
-                if (sortMode === "myOrder") {
-                    return (a.order ?? 0) - (b.order ?? 0);
-                }
-            
-                // ⚡ LATEST
-                if (sortMode === "latest") {
-                    return b.createdAt - a.createdAt;
-                }
-            
-                // ⚠️ URGENT FIRST
-                if (sortMode === "urgent") {
-                    if (a.completed !== b.completed) return a.completed ? 1 : -1;
-            
-                    if (a.priority !== b.priority) {
-                        return a.priority === "urgent" ? -1 : 1;
-                    }
-            
-                    return b.createdAt - a.createdAt;
-                }
-            
-                // 📌 NONE (DEFAULT APP BEHAVIOR)
-                return b.createdAt - a.createdAt;
-            });
 
         tasks.forEach((data, index) => { // Added index here
             const li = document.createElement("li");
             const isUrgent = data.priority === 'urgent';
             li.className = `note-item ${data.completed ? 'note-completed' : ''} ${isUrgent ? 'note-urgent' : ''}`;
-            const baseColor = data.color || "#ffffff";
-            li.style.background = data.completed ? "#dcfce7" : baseColor;
-            li.style.borderLeft = data.completed
-                ? "5px solid #16a34a"
-                : "5px solid transparent";
-            li.classList.add("draggable-note");
-            li.setAttribute("data-key", data.key);
-
-
-          li.setAttribute("draggable", true);
-
-li.addEventListener("dragstart", () => {
-    draggedItem = li;
-    li.style.opacity = "0.5";
-});
-
-li.addEventListener("dragend", () => {
-    draggedItem = null;
-    li.style.opacity = "1";
-});
-
-li.addEventListener("dragover", (e) => {
-    e.preventDefault();
-});
-
-li.addEventListener("drop", (e) => {
-    e.preventDefault();
-    if (!draggedItem || draggedItem === li) return;
-
-    const allNotes = [...notesList.querySelectorAll(".note-item")];
-
-    const fromIndex = allNotes.indexOf(draggedItem);
-    const toIndex = allNotes.indexOf(li);
-
-    if (fromIndex < toIndex) {
-        li.after(draggedItem);
-    } else {
-        li.before(draggedItem);
-    }
-
-    updateOrderInFirebase();
-});
-
-    
-
-            li.innerHTML = `
-<div class="note-top">
-  <div class="note-title">
+            
+            // Inside tasks.forEach in renderNotes
+li.innerHTML = `
+<div class="note-title">
     <span class="note-number">${index + 1}.</span> ${data.title} ${isUrgent ? '⚠️' : ''}
-  </div>
-
-  <div class="note-menu">
-    <button class="menu-btn">⋮</button>
-    <div class="menu-dropdown">
-      <div class="done-option">${data.completed ? 'Undo' : 'Done'}</div>
-      <div class="edit-option">Edit</div>
-      <div class="delete-option">Delete</div>
-      <div class="color-option">Color</div>
-    </div>
-  </div>
 </div>
-
 <div class="note-content">${data.content}</div>
-
-<span class="note-time">
-  ${data.reminder ? '🔔 ' + new Date(data.reminder).toLocaleString() : 'No reminder'}
-</span>
+<div class="note-status-print" style="display:none; font-size: 0.8rem; font-weight: bold; color: #16a34a;">
+    Status: ${data.completed ? 'Completed' : 'Pending'}
+</div>
+<span class="note-time">${data.reminder ? '🔔 ' + new Date(data.reminder).toLocaleString() : 'No reminder'}</span>
+<div class="note-actions">
+    <button style="background:#16a34a;" class="done-btn">${data.completed ? 'Undo' : 'Done'}</button>
+    <button style="background:#f59e0b;" class="edit-btn">Edit</button>
+    <button style="background:#ef4444;" class="del-btn">Delete</button>
+</div>
 `;
 
-            // Inside tasks.forEach in renderNotes
-            const menuBtn = li.querySelector(".menu-btn");
-            const dropdown = li.querySelector(".menu-dropdown");
-            
-            menuBtn.onclick = (e) => {
-                e.stopPropagation();
-            
-                // remove active from all notes
-                document.querySelectorAll(".note-item").forEach(n => {
-                    n.classList.remove("active");
-                });
-            
-                // bring this note to front
-                li.classList.add("active");
-            
-                // close other dropdowns
-                document.querySelectorAll(".menu-dropdown").forEach(d => {
-                    if (d !== dropdown) d.classList.remove("show");
-                });
-            
-                dropdown.classList.toggle("show");
-            };
             // Updated all child paths to include userKey
-            li.querySelector(".done-option").onclick = () =>
-                update(ref(db, `users/${userKey}/notes/${data.key}`), {
-                    completed: !data.completed
-                });
-            
-            li.querySelector(".edit-option").onclick = () => {
+            li.querySelector(".done-btn").onclick = () => update(ref(db, `users/${userKey}/notes/${data.key}`), { completed: !data.completed });
+            li.querySelector(".del-btn").onclick = () => confirm("Delete?") && remove(ref(db, `users/${userKey}/notes/${data.key}`));
+            li.querySelector(".edit-btn").onclick = () => {
+                // Fill the hidden key
                 document.getElementById("editKey").value = data.key;
+                
+                // Fill Title and Content
                 document.getElementById("editTitleInput").value = data.title;
                 document.getElementById("editContentInput").value = data.content;
-            
+                
+                // Fill the Date (Make sure the ID in your HTML is 'editReminderInput')
                 const editDateEl = document.getElementById("editReminderInput");
-                if (editDateEl) editDateEl.value = data.reminder || "";
-            
+                if (editDateEl) {
+                    editDateEl.value = data.reminder || "";
+                }
+                
+                // Fill Dropdowns
                 document.getElementById("editPriorityInput").value = data.priority || "normal";
                 document.getElementById("editCategoryInput").value = data.category || "personal";
-            
+                
                 toggleModal(editModal, true);
-            };
-            
-            li.querySelector(".delete-option").onclick = () => {
-                if (confirm("Delete?")) {
-                    remove(ref(db, `users/${userKey}/notes/${data.key}`));
-                }
-            };
-            li.querySelector(".color-option").onclick = () => {
-                const palette = ["#ffffff", "#fee2e2", "#dcfce7", "#dbeafe", "#fef9c3", "#f3e8ff"];
-            
-                let paletteDiv = document.createElement("div");
-                paletteDiv.className = "color-palette";
-            
-                palette.forEach(color => {
-                    let c = document.createElement("div");
-                    c.style.background = color;
-                    c.className = "color-circle";
-            
-                    c.onclick = () => {
-                        if (data.completed) return; // block changes
-                        update(ref(db, `users/${userKey}/notes/${data.key}`), {
-                            color: color
-                        });
-                        paletteDiv.remove();
-                    };
-            
-                    paletteDiv.appendChild(c);
-                });
-            
-                li.appendChild(paletteDiv);
             };
             notesList.appendChild(li);
         });
@@ -486,18 +257,8 @@ li.addEventListener("drop", (e) => {
 
 renderNotes();
 
-function updateOrderInFirebase() {
-    const items = [...notesList.querySelectorAll(".note-item")];
 
-    items.forEach((item, index) => {
-        const key = item.getAttribute("data-key");
-
-        update(ref(db, `users/${userKey}/notes/${key}`), {
-            order: index
-        });
-    });
-}
-document.getElementById("sidebarPdfBtn").onclick = () => {
+document.getElementById("downloadPdfBtn").onclick = () => {
     const element = document.getElementById("notesList");
     const categoryName = currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
     
@@ -559,7 +320,7 @@ document.getElementById("sidebarPdfBtn").onclick = () => {
     html2pdf().set(opt).from(pdfContainer).save();
 };
 // --- LOGOUT LOGIC ---
-document.getElementById("sidebarLogoutBtn").onclick = () => {
+document.getElementById("logoutBtn").onclick = () => {
     if (confirm("Are you sure you want to log out?")) {
         // 1. Clear the user key so the app "forgets" them
         localStorage.removeItem("dnotes_user");

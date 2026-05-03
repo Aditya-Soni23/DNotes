@@ -5,7 +5,9 @@ const ASSETS = [
   '/notes.html',
   '/style.css',
   '/main.js',
-  '/Diamond_Comapny_Logo.png'
+  '/Diamond_Comapny_Logo.png',
+  '/Dark_Border_Logo.png',
+  '/DNotes.png'
 ];
 
 // Install: Cache files
